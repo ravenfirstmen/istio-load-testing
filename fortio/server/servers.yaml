@@ -1,0 +1,172 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio-server-tcp
+  namespace: fortio
+spec:
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: fortio-server-tcp
+      version: v1      
+  template: 
+    metadata:
+      labels:
+        app: fortio-server-tcp
+        version: v1      
+        sidecar.istio.io/inject: "true"
+      annotations:
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-type/role
+                operator: In
+                values:
+                - worker
+
+      containers:
+      - name: fortio-server
+        image: fortio/fortiotel:1.66.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - server
+          - -loglevel
+          - debug
+        securityContext: 
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: "1"
+            memory: 300Mi
+        ports:
+        - containerPort: 8078 # tcp echo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio-server-grpc
+  namespace: fortio
+spec:
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: fortio-server-grpc
+      version: v1      
+  template: 
+    metadata:
+      labels:
+        app: fortio-server-grpc
+        version: v1      
+        sidecar.istio.io/inject: "true"
+      annotations:
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-type/role
+                operator: In
+                values:
+                - worker
+
+      containers:
+      - name: fortio-server
+        image: fortio/fortiotel:1.66.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - server
+          - -loglevel
+          - debug
+        securityContext: 
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: "1"
+            memory: 300Mi
+        ports:
+        - containerPort: 8079 # grpc echo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio-server-http
+  namespace: fortio
+spec:
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: fortio-server-http
+      version: v1      
+  template: 
+    metadata:
+      labels:
+        app: fortio-server-http
+        version: v1  
+        sidecar.istio.io/inject: "true"
+      annotations:
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'    
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-type/role
+                operator: In
+                values:
+                - worker
+
+      containers:
+      - name: fortio-server
+        image: fortio/fortiotel:1.66.0
+        imagePullPolicy: IfNotPresent
+        args:
+          - server
+          - -loglevel
+          - debug
+        securityContext: 
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: "1"
+            memory: 300Mi
+        ports:
+        - containerPort: 8080 # http echo/debug
+---

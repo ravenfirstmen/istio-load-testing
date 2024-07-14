@@ -1,0 +1,79 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fortio-test-load-grpc-job
+  namespace: fortio
+  labels:
+    jobgroup: fortio-test-load-grpc-job
+    version: v1  
+spec:
+  template:
+    metadata:
+      name: fortio-test-load-grpc-job
+      namespace: fortio
+      labels:
+        jobgroup: fortio-test-load-grpc-job
+        version: v1  
+        sidecar.istio.io/inject: "true"
+      annotations:
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-type/role
+                operator: In
+                values:
+                - worker
+
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: task-pv-claim
+
+      containers:
+      - name: fortio-test-load-grpc-job
+        image: fortio/fortiotel:1.66.0
+        imagePullPolicy: IfNotPresent      
+        args:
+          - load
+          - -t
+          - 30s
+          - -qps
+          - "1000"
+          - -nocatchup
+          - -c
+          - "32"
+          - -grpc
+          - -ping
+          - -uniform
+          - -sequential-warmup
+          - -labels
+          - "gRPC"
+          - -data-dir
+          - /results
+          - fortio-server-grpc.fortio.svc.cluster.local:8079
+        volumeMounts:
+          - mountPath: "/results"
+            name: task-pv-storage          
+        securityContext: 
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: "1"
+            memory: 300Mi
+
+      restartPolicy: Never

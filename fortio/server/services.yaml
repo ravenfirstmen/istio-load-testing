@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server-tcp
+  namespace: fortio
+  labels:
+    app: fortio-server-tcp
+    service: fortio-server-tcp    
+spec:
+  ports:
+  - port: 8078
+    name: tcp-echo
+  selector:
+    app: fortio-server-tcp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server-grpc
+  namespace: fortio
+  labels:
+    app: fortio-server-grpc
+    service: fortio-server-grpc  
+spec:
+  ports:
+  - port: 8079
+    name: grpc-ping
+  selector:
+    app: fortio-server-grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortio-server-http
+  namespace: fortio
+  labels:
+    app: fortio-server-http
+    service: fortio-server-http  
+spec:
+  ports:
+  - port: 8080
+    name: http-echo
+  selector:
+    app: fortio-server-http
+        
